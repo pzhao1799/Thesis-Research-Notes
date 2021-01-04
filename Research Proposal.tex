@@ -1,0 +1,94 @@
+% --------------------------------------------------------------
+% This is all preamble stuff that you don't have to worry about.
+% Head down to where it says "Start here"
+% --------------------------------------------------------------
+\documentclass[12pt]{article}
+ 
+\usepackage[margin=0.8in]{geometry} 
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\linespread{1.1}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+ 
+\setlength\parindent{10pt}
+\newenvironment{theorem}[2][Theorem]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{lemma}[2][Lemma]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{exercise}[2][Exercise]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{reflection}[2][Reflection]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{proposition}[2][Proposition]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{corollary}[2][Corollary]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+ 
+\begin{document}
+ 
+% --------------------------------------------------------------
+%                         Start here
+% --------------------------------------------------------------
+ 
+%\renewcommand{\qedsymbol}{\filledbox}
+ 
+\title{\vspace{-2cm}Thesis Proposal}%replace X with the appropriate number
+\author{Peter Zhao} 
+\date{\vspace{-1cm}}
+\maketitle
+
+\subsection*{The 3SUM Problem}
+The 3SUM problem asks if given a set of $n$ real numbers, whether any three numbers sum to zero. An $O(n^2)$ algorithm is trivially known to easily solve 3SUM. It was widely conjectured that this algorithm was optimal, meaning that 3SUM cannot be solved in time $O(n^{2-\delta})$ for any constant $\delta > 0$. However, in 2014, Grønlund and Pettie \cite{gronlund2014threesomes} refute this conjecture and showed that there exists a deterministic sub-quadratic 3SUM algorithm, which was later improved in 2017 \cite{gold2015improved} and 2018 \cite{kane2019near}. While 3SUM itself is not very practical, lower bounds on the 3SUM problem imply lower bounds for many other problems. This is seen especially in computational geometry, giving rise to the complexity class of 3SUM-hardness. Thus, there is significant applicability in determining better lower bounds for the 3SUM problem.
+
+\subsection*{Time-Space Tradeoffs for Inverting Functions}
+A goal in cryptography is to develop techniques to invert one-way functions. In the extremes, we can invert functions via simple exhaustive search, which takes $O(N)$ time but $O(1)$ space. Alternatively, we can precompute a table storing all the function outputs in $O(N)$ space but later use only $O(1)$ time for function inversion. Fiat and Naor \cite{fiat1991rigorous} provide rigorous time-space tradeoffs for inverting any function. Given a function $f$, the tradeoff is $TS^2 = N^3q(f)$. Golovnev et al. \cite{golovnev2020data} describe how cryptographic techniques are closely connected to data structures. Using the Fiat-Naor inversion scheme, they determine better upper bounds for 3SUM by reframing 3SUM to a preprocessing variant, 3SUM-Indexing. 3SUM-Indexing constructs a data structure offline such that online queries to determine solutions to 3SUM are faster, giving them a tradeoff of $TS^3 = O(N^6)$.
+
+\subsection*{Goals}
+We seek to improve time-space tradeoffs for solving 3SUM with preprocessing. As many problems involve a closed input domain, preprocessing this input efficiently can allow us to solve 3SUM more quickly than the best deterministic lower bound. Grønlund and Pettie \cite{gronlund2014threesomes}, Chan and Lewenstein \cite{chan2015clustered}, Freund \cite{freund2017improved}, and others all describe techniques for partitioning the input domain such that improved bounds for solving 3SUM are achieved. We hope that studying these methods will provide insight into how we might create a data structure so that Fiat-Naor inversion gives us concrete gains. Additionally, we seek to apply concepts from additive combinatorics to understand the structure of the sumset (a core componenet in the 3SUM problem), which will help prove the correctness of the constructed data structure for efficient Fiat-Naor inversion. Lastly, we hope to be able to describe our construction in a manner so that implementation of the algorithm may be feasible and generalize our techniques to other 3SUM-hard problems.
+
+\newpage
+
+\bibliographystyle{plain} % We choose the "plain" reference style
+\bibliography{refs} % Entries are in the "refs.bib" file
+
+% \begin{thebibliography}{}
+% \bibitem{GronlundPettie} 
+% Allan Grønlund, Seth Pettie
+% \textit{Threesomes, Degenerates, and Love Triangles}.
+% \\\url{http://arxiv.org/abs/1404.0799}
+
+% \bibitem{GoldSharir} 
+% Omer Gold, Micha Sharir
+% \textit{Improved Bounds for 3SUM, k-SUM, and Linear Degeneracy}. 
+% \\\url{http://arxiv.org/abs/1512.05279}
+
+% \bibitem{KaneLovettMoran} 
+% Daniel M. Kane, Shachar Lovett, Shay Moran
+% \textit{Near-optimal linear decision trees for k-SUM and
+% related problems}. 
+% \\\url{http://arxiv.org/abs/1705.01720}
+
+% \bibitem{FiatNaor} 
+% Amos Fiat, Moni Naor
+% \textit{Rigorous Time/Space Tradeoffs for Inverting Functions}. 
+% \\\url{https://dl.acm.org/doi/pdf/10.1145/103418.103473}
+
+% \bibitem{GolovnevGuHo} 
+% Alexander Golovnev, Siyao Guo, Thibaut Horel, Sunoo Park, Vinod Vaikuntanathan
+% \textit{Data Structures Meet Cryptography: 3SUM with Preprocessing}. 
+% \\\url{http://arxiv.org/abs/1907.08355}
+
+% \bibitem{ChanLewenstein} 
+% Timothy M. Chan, Moshe Lewenstein
+% \textit{Clustered Integer 3SUM via Additive Combinatorics}. 
+% \\\url{http://arxiv.org/abs/1502.05204}
+
+% \bibitem{Freund} 
+% Ari Freund
+% \textit{Improved Subquadratic 3SUM}. 
+% \\\url{https://link.springer.com/content/pdf/10.1007/s00453-015-0079-6.pdf}
+
+% \end{thebibliography}
+\end{document}

@@ -1,0 +1,103 @@
+\documentclass{article}
+\usepackage{fullpage}
+\usepackage{amsthm, amsmath}
+\usepackage{url}
+
+\newtheorem{claim}{Claim}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{observation}{Observation}
+\newtheorem{question}{Problem}
+
+\title{Improving 3SUM Time-Space Tradeoffs Proofs}
+\author{Sam McCauley and Peter Zhao}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Fiat-Naor Proofs}
+\label{sec:fiat-naor}
+
+\begin{lemma}
+\label{3SUM-Indexing}
+For any $0 < \delta < 1$, there exists an algorithm that solves the 3SUM-Indexing problem whose space usage is $O(n^{2 - \delta/3})$ and the cost of a query is $O(n^{\delta})$ time. This satisfies $T$ and $S$ such that $TS^3 = N^3$.
+\end{lemma}
+
+\begin{proof}
+The algorithm consists of two parts - a carefully constructed function $f:[n]^2 \rightarrow [n]^2$ and a data structure for inverting $f$. This data structure is created via the Fiat-Naor inversion scheme. The Fiat-Naor inversion scheme gives us a tradeoff for inverting general functions using $O(S)$ space and $O(T)$ time. In our situation, $N=n^2$, so if we want our query time to be $T=O(n^\delta)$ for $0 < \delta < 1$, then we can choose to use space $S = O(n^{2-\delta/3})$.
+\end{proof}
+
+\begin{theorem}
+\label{Fiat-Naor}
+For any function $f:D \rightarrow D$ where $|D| = N$ and for any values $S$ and $T$ satisfying $TS^3 = N^3$, there exists an algorithm for inverting $f$ using using a deterministic data structure of space $O(S)$ and using time $O(T)$ with constant probability.
+\end{theorem}
+
+\begin{proof}
+The Fiat-Naor inversion scheme provides us with a general space-time tradeoff for inverting functions: $TS^3 = N^3$. We can use this to invert the given function on the tradeoff. We use this theorem as a black-box when solving the problem, as it takes care of function inversion completely. 
+\end{proof}
+
+\begin{lemma}
+\label{Random Instances}
+For any $0 < \delta < 1$, there exists an algorithm that solves the 3SUM-Indexing problem on a uniformly random instance whose space usage is $O(n^{2 - \delta/2})$ and the cost of a query is $O(n^{\delta})$ time
+\end{lemma}
+
+\begin{proof}
+The Fiat-Naor inversion scheme gives us two tradeoffs: $TS^3 = N^3$ and $TS^2 = N^3q(f)$, where $q(f)$ is the probability that two randomly chosen elements from the domain have the same image. Note that whenever $1/S < q(f)$, then the first tradeoff is better than the second, as the probability of collision can only be reduced if we use greater than linear space, which is not optimal. One can also interpret the tradeoff as using $S$ space to reduce the probability of collision, which replaces $q(f)$ with $1/S$, reducing the first tradeoff as a special case of the second tradeoff. Thus, on random inputs, we know that the probability of collision is only $1/N$ where $N=n^2$, which is the probability of selecting an element in a uniform distribution. Thus, this gives us $TS^2 = N^3(1/N) = TS^2 = N^2$.
+\end{proof}
+
+\begin{lemma}
+\label{Min and Max q(f) values}
+Consider 3SUM-Indexing and let $|A| = n$. The smallest $q(f)$ can take is $1/O(n^2)$, and the largest $q(f)$ can take is $1/O(n)$
+\end{lemma}
+
+\begin{proof} %Not necessarily correct, size of sumset is not directly q(f)
+The smallest $q(f)$ occurs when there are no collisions of sums, or when the function $f: A \rightarrow S$ has minimum in-degree (1). When all sums have a unique sumset, this is achieved, and there are a total of $O(n^2)$ possible sums. Thus, $q(f) = 1/O(n^2)$
+
+The largest $q(f)$ occurs when we have the greatest amount of collisions, or when the function $f$ has maximum in-degree. When our sumset is of minimum size, or an arithmetic progression, then this occurs. In this scenario, there are a total of $O(n)$ possible sums. Thus, to determine $q(f)$, we choose 2 sums and determine if they collide.
+\end{proof}
+
+\section{Sumset Structure Proofs}
+\label{sec:sumset}
+
+\begin{lemma}
+\label{Arithmetic Progression}
+For every finite set $A \subseteq \mathbf{R}$ we have $|A+A| \geq 2|A|-1$, with equality if and only if A is an arithmetic progression of length $n$
+\end{lemma}
+
+\begin{proof}
+Let $A$ be of size $n$, and write $A$ as an increasing set $\{a_1, a_2, a_3, ..., a_n\}$ such that $a_1 < a_2 < a_3 < ... < a_n$. Then, we have:
+\begin{align*}
+    a_1 + a_1 < a_1 + a_2 < ... < a_1 + a_n < a_2 + a_n < ... < a_n + a_n
+\end{align*}
+This gives us $2n-1$ distinct elements of the sumset, which shows that the sumset must be at least size $2|A|-1$. Now, we show that if $|A+A| = 2|A|-1$, then it must be an arithmetic progression. 
+
+Let $A_i$ be a set of size $i$. If we consider $A_2$, then it is trivial as it will always be an arithmetic progression of two elements, and $|A_2 + A_2| = 3$. Assume this holds true for all $A_i$ up to $A_{n-1}$. Now, suppose we add a new element $a_n$, and assume without loss of generality that it is the largest element in $A_n$. Now, we must have two new elements to the sumset: $a_n + a_n$ and $a_n + a_{n-1}$, which gives us $|A_n + A_n| = 2{n-1}-1 + 2 = 2n-1$. These elements are larger than all other elements in the sumset. Therefore, it must be that $a_n + a_{n-2}$ is in $A_{n-1} + A_{n-1}$, making it the largest element in the sumset, except for perhaps $a_{n-1} + a_{n-1}$. Thus, $a_n + a_{n-2} = a_{n-1} + a_{n-1}$, meaning that $A_{n}$ must be an arithmetic progression.
+\end{proof}
+
+\begin{lemma}
+\label{Largest sumset}
+For every finite set $A \subseteq \mathbf{R}$ we have $|A+A| \leq \frac{|A|(|A| + 1)}{2}$
+\end{lemma}
+
+\begin{proof}
+Consider the set $A = \{1,2,2^2,2^3,...,2^{n-1}\}$ such that $|A| = n$. If we compute the sumset of this, we notice that no sum is seen twice, because every term is more than twice greater the previous, so each next element constructs an entire set of new sums, meaning it is as large as possible. The size of this set is effectively a combination of the elements with replacement, which is:
+\begin{align*}
+    \binom{n+r-1}{r} = \binom{|A|+2-1}{2} = \binom{|A|+1}{2} = \frac{|A|(|A| + 1)}{2}
+\end{align*}
+\end{proof}
+
+\section{BSG Proofs}
+\label{sec:bsg}
+
+\section{Other Proofs}
+\label{sec:other}
+
+\begin{lemma}
+\label{Difficulty of Problem}
+3SUM-Indexing's most difficult instance is the arithmetic progression (or small sumset) instance.
+\end{lemma}
+
+
+\end{document}

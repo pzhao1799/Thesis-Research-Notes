@@ -1,0 +1,206 @@
+\documentclass{article}
+\usepackage{fullpage}
+\usepackage{amsthm}
+\usepackage{url}
+
+\newtheorem{claim}{Claim}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{observation}{Observation}
+\newtheorem{question}{Problem}
+
+\title{Notes for Improving 3SUM Time-Space Tradeoffs}
+\author{Sam McCauley and Peter Zhao}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Results}%
+\label{sec:results}
+
+
+
+We can prove the following two lemmas using the two results in Fiat-Naor~\cite{FiatNaor00}.
+
+This first lemma is already present in~\cite{GolovnevGuHo19}.
+
+\begin{lemma}
+\label{lem:cubic}
+For any $T$ and $S$ satisfying $TS^3 = N^6$, we can preprocess $A$ using space $S$ so that given a query $q$, we can answer if there exist $a,b\in A$ such that $a + b = q$ with constant probability in time $O(T)$.
+\end{lemma}
+
+\begin{proof}
+The Fiat-Naor inversion scheme provides us with a general space-time tradeoff for inverting functions: $TS^3 = N^3$. In the $3SUM$ problem, we are given a list of $N$ elements, in which we determine if there exists a pair $a,b \in A$ such that $a+b = q$. Thus, the search space is $N^2$, and we are appling the inversion scheme to the space of tuples rather than the elements themselves. Thus, this gives us $TS^3 = (N^2)^3 = N^6$ as our space-time tradeoff for solving 3SUM.
+\end{proof}
+
+
+\begin{lemma}
+\label{lem:output-sensitive}
+
+Let 
+\[
+  p(A) = \Pr_{a,b,c,d\in A}(a + b = c + d)
+\]
+
+Then for any $T$ and $S$ satisfying $TS^2 = N^6 p(A)$, we can preprocess $A$ using space $S$ so that given a query $q$, we can answer if there exist $a,b\in A$ such that $a + b = q$ with constant probability in time $O(T)$.
+\end{lemma}
+
+TODO: some of these should be $n$ instead of $N$
+
+\begin{proof}
+Again, the Fiat-Naor inversion scheme provides a space-time tradeoff for inverting functions: $TS^2 = N^3q(f)$. In this tradeoff, $q(f)$ is the probability that two random elements are mapped to the same image under $f$. In $3SUM$, we again note that our search space is $N^2$, and the probability two elements map to the same sum is $p(A)$. Thus, we have the space-time tradeoff for solving 3SUM as $TS^2 = N^6p(A)$. \\
+\end{proof}
+
+Let's look at two extreme values of $p(A)$:
+
+If $p(A) = 1/N^2$, then Lemma~\ref{lem:output-sensitive} obtains the tradeoff $TS^2 = N^4$.  Then, if we set $S = N^{2-\delta}$, we obtain $T = N^{2\delta}$.
+
+If $p(A) = 1/N$, then Lemma~\ref{lem:output-sensitive} obtains the tradeoff $TS^2 = N^5$.  Then, if we set $S = N^{2-\delta}$, we obtain $T = N^{1+2\delta}$.  This is not useful.
+
+The former case means that if we reduce space, we are able to use only some factor more than the time squared. The latter case (bad) means that the if we reduce space, we have to use a whole $N$ time and then some time squared.
+
+In general, if we want $S = N^{2-\delta}$ and $T = o(N)$, then we need $p(A) = TS^2/N^6 = o(N^{5-2\delta}/N^6) = o(1/N^{1+2\delta})$.
+
+\section{Definitions}%
+\label{sec:definitions}
+\begin{itemize}
+    \item Let the sumset be the set of all sums of elements of $A$ with elements of $B$. That is,
+    $$A+B = \{a+b | a \in A, b \in B\}$$
+    \item Let the sumarray be the array of all sums of elements of $A$ with elements of $B$, indexed by the appropriate element in $A$ and $B$. That is,
+    $$A \times B = [a,b | a\in A, b \in B]$$
+\end{itemize}
+
+TODO: say something about diagonals
+
+
+
+\section{Questions}%
+\label{sec:questions}
+
+Let $N=|A|$, and $n = O(N^2) = |A+A|$.
+\begin{lemma}
+The maximum $\Pr(A)$ can take is 
+\end{lemma}
+\begin{proof}
+$Pr(A)$ represents the probability that two unique elements have the same sum as two other unique elements. There are $N$ choose 4 total elements we can select, and the probability that 4 elements we select form colliding subset is what we are looking for. Now, the probability that we select a set of elements that form a colliding subset is the conditional probability that we select a colliding subset conditioned on the probability that our set $A$ contains colliding subsets. Namely
+$$\Pr(\textrm{Picking 4 elements that have colliding sums}|\textrm{Our set contains colliding sums})$$
+
+Now, we can use Bayes Rule to separate this out, giving us
+$$\frac{\Pr(\textrm{Set contains CS}|\textrm{Picking 4 elements that have CS})\Pr(\textrm{Picking 4 elements have CS})}{\Pr(\textrm{Set contains CS})}$$
+
+Seems like the probability that our set contains colliding sums given that we can pick 4 elements with colliding sums is 1. Thus we just reduce down to the probability pick 4 elements over the probability the set contains colliding sums.
+\end{proof}
+
+\begin{itemize}
+    \item There's an old result for preprocessing 3SUM where all results are stored in a hash table: we store $A+A$ in a hash table.  Then we can just look up any query $q \in A+A$.  Can we reduce the space to below $O(|A|^2)$ in the case where $p(A) \geq 1/{N\choose 4}$?  Or when $p(A) = \Omega(1/N^{4-\epsilon})$ for some $\epsilon > 0$?
+    \item Does $A$ being an arithmetic progression maximize $p(A)$?
+    \item If I want an item to appear in every bottom-right diagonal, does that give me any structure?  Off the top of my head: it fixes the larger half of $A$.
+    \item (I think easy:) is there an $A$ where $|A+A| = \Omega(n^2)$ but $p(A)$ is very large (maybe even $1/n$)? \\
+    No, as by definition, if $|A+A| = \Omega(n^2)$, then there are very few pairs of elements in $A$ that sum to the same element, and thus hashing cannot collide that much, meaning $p(A)$ must be small.
+    \item We note that the largest $A+A$ that is possible is when every element is more than double the previous, as that eliminates all duplicate sums. Logic: sums of nearby elements can not exceed double of either, so the next double element guarantees a unique sum.
+    \item Is it true that $p(A) \geq 1/|A+A|$?
+    \item Can we make any statements about the range of values along a diagonal?
+    \item If $A$ is $N$ elements selected at random from $\{1,\ldots, N^4\}$, then what is the probability that four elements selected at random from $A$ have $a + b = c+d$?  This probability is over both the selection of $A$, and the selection of $a,b,c,d\in A$.  How small can we make the universe (the term $N^4$) and still get $p(A) = 1/N^2$?
+    \item (new from Oct 6th): let's say that every antidiagonal is exactly 45 degrees (each time you go down, you'll be going left immediately after).  Then:
+      \begin{itemize}
+        \item Let's say we just store $A$ (and we have this guarantee); can we get a faster $T$?  Can we use binary search or something like that?  (Or better?)
+        
+        If we consider $A+A$, then the antidiagonals are repeated halfway (symmetric) and perfectly sorted. Thus, we can utilize $A$ to quickly find a sum (?)
+        
+        Actually not so sure how to do this - the values always seem to line within a 3 diagonal range, but if not A+A then it gets worse. Knowing A immediately can give us the middle main diagonal, which are the smallest values in the entire diagonal. We can approximately find the diagonals between two elements of $A+A$, and search from there.
+        
+        \item If we do the Fiat-Naor inversion on each set of consecutive $N^{\epsilon}$ diagonals, what does that get us?  (Note that you know which set of diagonals a query needs to go to with our assumption.)
+        \item Long-term goal: what if it's not quite 45 degrees?  What if it's approximate?  What if it's not 45 degrees but we store it?  And finally, what if we store it approximately so that we can compress it?
+      \end{itemize}
+  \item Remember we have this hash $(ax + b)$ mod $p$. What happens to the antidiagonals when you hash $A$?
+  
+  If we hash $A+A$, then the table might potentially no longer be increasing, as higher elements wrap around.
+  \item It might be worth coding up a "look at antidiagonals" visualization thing.
+\end{itemize}
+
+\section{Notes}
+
+\begin{itemize}
+    \item Diffset is at most twice the size of the sumset - This means that every sumset configuration at most produces 2 diffset elements.
+    \item Can we rephrase $p(A)$ using subtraction to get ourselves something interesting?\\
+    Rephrasing gives us $p(A) = \Pr_{a,b,c,d \in A} (a-c = d-b)$ or $p(A) = \Pr_{a,b,c,d \in A} (a-d = c-b)$
+    \item Suppose we choose 4 elements from a set $A$. Then if those 4 elements $a,b,c,d$ satisfy that the sum of some 2 elements are the same, then
+    $$a+b = c+d$$
+    $$a-c = d-b$$
+    $$a-d = c-b$$
+    $$b-c = d-a$$
+    $$b-d = c-a$$
+    Let us define 4 elements satisfying the the same sum property as a colliding subset.
+    \item I like the definition of 3SUM that says given arrays $A,B,S$, determine if there is $a \in A, b \in B$ such that $a+b=s \in S$. It doesn't conflate one single list which confuses me sometimes.
+\end{itemize}
+
+
+\section{Examples}%
+\label{sec:examples}
+
+This section is for any interesting values of $A$.
+
+\paragraph{Arithmetic progression} If $A$ is an arithmetic progression, then it minimizes the sumset and the diffset.
+
+\section{BSG Theorem}
+\begin{itemize}
+    \item Bounded Monotone MinConv $\leftrightarrow$ 3SUM$^+$ $\leftrightarrow$ Necklace Alignment
+    \item One formulation of the BSG Theorem states
+    
+    Given sets $A,B,S$ of size $N$ in any abelian group such that $|\{(a,b) \in A \times B : a+b \in S\}| \geq \alpha N^2$, we must have $|A'+B'| \leq O((1/\alpha)^5 N)$ for some large subsets $A' \subseteq A$ and $B' \subseteq B$ with $|A'|, |B'|, \geq \Omega(\alpha N)$
+    \begin{itemize}
+        \item Reveals that the special condition is that the sumset $A+B$ has small size - similar to Freiman's Theorem (not used)
+        \item $A,B$ are not necessarily special, just that large subsets $A', B'$ are special. A stronger version allows us to remove covered pairs $(a,b) \in A \times B$, which is stated later.
+        \item We need to choose $\alpha$ and $l$ to balance contribution of normal and special cases
+    \end{itemize}
+    
+    \item The BSG Theorem we will use states
+    
+    Let $A,B$ be finite subsets of an abelian group, and $G \subseteq A \times B$. Suppose that $|A||B| = \Theta(N^2), |\{a+b: (a,b) \in G\}| \leq tN$, and $|G| \geq \alpha N^2$. Then there exist subsets $A' \subseteq A$ and $B' \subseteq B$ such that 
+    \begin{enumerate}
+        \item $|A' + B| \leq O(((1/\alpha)^5t^3N)$
+        \item $|G \cap (A' \times B') \geq \Omega(\alpha|A'||B|) \geq \Omega(\alpha^2N^2)$
+    \end{enumerate}
+    The idea is that we want to iteratively remove $A' \times B'$ from $G$ (starting with $G = \{(a,b) | a+b \in S\}$, and we get the following corollary if we do this.
+    
+    \item BSG Corollary states
+    
+    Let $A,B,S$ be finite subsets of an abelian group. Suppose that $|A||B| = O(N^2)$ and $|S| \leq tN$. For any $\alpha < 1$, there exist subsets $A_1, ... , A_k \subseteq A$ and $B_1, ... , B_k \subseteq B$ such that
+    \begin{enumerate}
+        \item the remainder set $R = \{(a,b) \in A \times B : a+b \in S\} \backslash \bigcup_{i=1}^k (A_i \times B_i)$ has at most size $\alpha N^2$
+        \item $|A_i + B_i| \leq O((1/\alpha)^5t^3N)$ for each $i=1,...,k$
+        \item $k = O(1/\alpha)$
+    \end{enumerate}
+    
+    \item The remainder set $R$ is the set of elements $a,b$ that contain a sum in $s \in S$ but are not included in the subset partitioning
+    \item Thus, the BSG Corollary gives us two important pieces: the list of $A_i + B_i$ and the remainder set $R$. All the $A_i + B_i$ have a small sumset (by construction definition), and thus the elements within have high collision. The remainder set is the entire sumset $A+B$ with every $A_i \times B_i$ removed, meaning that this represents the sums with low collision. Given these two portions, we want to deal with them separately. 
+    \item Via the FFT Lemma, we can compute the sumset efficiently if the sumset is small.
+    \item The main algorithm is thus as follows:
+    \begin{itemize}
+        \item Divide $[n]^d$ into $O((n/l)^d)$ grid cells with side length $l$. Let $cell(p)$ be the label of the grid cell containing the point $p$. All points satisfy $x_j$ mod $l < l/2$ for all $j$, meaning it is aligned. So $a+b = s$ implies $cell(a)+cell(b) = cell(s)$, which confirms monotonicity. Let $A^* = \{cell(a): a \in A\}$, $B^* = \{cell(b): b \in B\}$. $S^* = \{cell(s): s \in S\}$.
+        \item We apply the BSG Corollary to $A^*, B^*, S^*$, which produces subsets $A_1^*,...,A_k^*$, $A_1^*,...,A_k^*$, and remainder $R^*$. Note that $|A^*|, |B^*|, |S^*| = O(n/l)$ by monotonicity. Thus, $N = \Theta(n/l), t = 1$.
+        \item For each pair $(a^*, b^*)$ in the remainder set $R^*$, recursively solve problems on the elements in the cells where $cell(a) = a^*$, $cell(b) = b^*$, $cell(s) = a^* + b^*$. The number of recursive calls is $|R^*| = O(\alpha(n/l)^2)$.
+        \item For each of the $k$ $A_k^*, B_k^*$ subsets, we will use FFT Lemma, and if a generated element is in $S$, then we report them.
+    \end{itemize}
+    \item First, we note that the monotonicity requirement is not required, since the only property we need is clusterability. A $d$ dimensional set is $(K,L,M)-clustered$ if the set can be divided into $K$ hypercubes each of volume $L$ and containing at most $M$ points of the set.
+    \item We can derive a similar equivalent algorithm using the clusterability instead of the monotonicity. The bound on the number of points per cluster is not essential, nor is clusterability of $S$.
+    \item Using this algorithm and applying it to where $A$ is $(n^{1-\delta},n)-clustered$, we can solve $3SUM^+$ in $n^{2-\Omega(\delta)}$ time.
+    \item We now consider the case of online queries. We want to preprocess $A,B$ such that we can process any query in $O(min\{M_A, M_B\} * P)$ time, where $P$ is a popularity parameter. In this algorithm, we define buckets, and place $(a^*,b^*) \in A^* \times B^*$ in a bucket $s^* = a^* + b^*$. The popularity of a bucket depends on the number of elements. The rest of the algorithm works the same as before, but we then store the union of all lists $L$ generated in steps 1 and 2, and prune elements not in $S^*$ from $L$.
+    \item To query, we consider if $cell(s)$ has low or high popularity based on $P$. If low, we look at the bucket for $cell(s)$, and for each $a^*, b^*$, search for some $a \in A$ with $cell(a) = a^*$ such that $s-a \in B$. In the high case, we simply test $s$ for membership in $L$.
+    \item We can also consider preprocessed $3SUM^+$ in the universal case, where we have universes $A_0, B_0, S_0$, if these are each size $O(n)$, we can preprocess in $O(n^2)$ into a data structure with $O(n^{3/7})$ space such that given any subset of the universe, we can solve in $O(n^{13/7})$ time.
+    \item Again, this uses a very similar algorithm as before, but we are able to get an improvement in Step 1 using Fiat Naor
+    \begin{itemize}
+        \item Step 1: For each $(a,b) \ in R$, if $a \in A, b\in B, a+b \in S$, report $a+b$. Since $|R| = O(\alpha n^2)$, this take $O(\alpha n^2)$ time. Now, consider preprocessing $R$ as well using Fiat Naor. Since the size of $R$ is $O(\alpha n^2)$, the probability of collision is $1/\alpha n^2$ since this is the case where the sumset is large and cannot be reduced further. Then, applying the $TS^2 = N^6p(q) \rightarrow TS^2 = N^6(1/\alpha N^2)$. Simplifying, we have $TS^2 = (1/\alpha)N^4$. This means that we can preprocess this step in $S = (1/\sqrt{\alpha} N ^{2-\delta})$ space and $T = N^{2\delta}$ time and we effectively move the universe preprocessing out of the querying, giving us total expected time
+        $$O(n^{2\delta} + (1/\alpha)^6 n)$$
+        This reduces the alpha dependency. We can take $\alpha = n$, which means we use $O(n^3 + 1/n^5 + (1/\sqrt{n})n^{2-\delta})$ space for preprocessing, but query time will only be $O(n^{2\delta})$. Since the space complexity ends up being $O(n^3)$, we can set $\delta$ small so that the query time is fast.
+    \end{itemize}
+\end{itemize}
+
+\newpage
+
+\bibliographystyle{plain} % We choose the "plain" reference style
+\bibliography{notes} % Entries are in the "refs.bib" file
+
+\end{document}

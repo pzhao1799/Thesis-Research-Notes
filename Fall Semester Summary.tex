@@ -1,0 +1,98 @@
+% --------------------------------------------------------------
+% This is all preamble stuff that you don't have to worry about.
+% Head down to where it says "Start here"
+% --------------------------------------------------------------
+\documentclass[12pt]{article}
+ 
+\usepackage[margin=0.8in]{geometry} 
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\linespread{1.1}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+ 
+\setlength\parindent{10pt}
+\newenvironment{theorem}[2][Theorem]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{lemma}[2][Lemma]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{exercise}[2][Exercise]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{reflection}[2][Reflection]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{proposition}[2][Proposition]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{corollary}[2][Corollary]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{question}[2][Question]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+ 
+\begin{document}
+ 
+% --------------------------------------------------------------
+%                         Start here
+% --------------------------------------------------------------
+ 
+%\renewcommand{\qedsymbol}{\filledbox}
+ 
+\title{\vspace{-2cm}Semester Summary}%replace X with the appropriate number
+\author{Peter Zhao} 
+\date{\vspace{-1cm}}
+\maketitle
+
+\subsection*{The 3SUM Problem}
+The 3SUM problem asks if given a set of $n$ real numbers, whether any three numbers sum to zero. An $O(n^2)$ algorithm is trivially known to easily solve 3SUM. It was widely conjectured that this algorithm was optimal, meaning that 3SUM cannot be solved in time $O(n^{2-\delta})$ for any constant $\delta > 0$. However, in 2014, Grønlund and Pettie refute this conjecture and showed that there exists a deterministic sub-quadratic 3SUM algorithm.. While 3SUM itself is not very practical, lower bounds on the 3SUM problem imply lower bounds for many other problems. This is seen especially in computational geometry, giving rise to the complexity class of 3SUM-hardness. Thus, there is significant applicability in determining better lower bounds for the 3SUM problem.
+
+\subsection*{Time-Space Tradeoffs for Inverting Functions}
+A goal in cryptography is to develop techniques to invert one-way functions. In the extremes, we can invert functions via simple exhaustive search, which takes $O(N)$ time but $O(1)$ space. Alternatively, we can precompute a table storing all the function outputs in $O(N)$ space but later use only $O(1)$ time for function inversion. Fiat and Naor provide rigorous time-space tradeoffs for inverting any function. Given a function $f$ where $f$ maps the domain $D = \{1,2,...,N\}$ to itself, the tradeoff is $TS^2 = N^3q(f)$, where $q(f)$ is the probability two randomly chosen elements from the domain have the same image. The scheme is based on the Hellman scheme with more rigorous analysis and bounds.
+\begin{enumerate}
+    \item Define a family of functions $G$ such that all $g \in G$ where $g$ maps $D$ to itself. We will note that $G$ is $k$-wise independent, meaning that for all $x_1, x_2, x_k \in D$, the random variables $g(x_1), g(x_2), ..., g(x_k)$ are independent and uniformly distributed in $D$. We will choose and compute the $g_i$ functions using FFT so that computations is fast.
+    \item Let $l = t, S = mt^2, N = lmt$. Let $\tilde{S}$ = $3S$.
+    \item To preprocess, we fill a table $A$ of size $\tilde{S}$, and we choose $\tilde{S}$ values in $D$ randomly, and store $(x_i, f(x_i))$ in $A$. Let $g^j(x)$ be the $j$th iterate of $g$ on $x$. Define $h_i(x) = g_i^j(f(x))$, where $j$ is the first value that $f(g_i^j(f(x))) \notin A$.
+    \item Then, for all $1 \leq i \leq l$, we will pick $x_{ij}$ randomly from $D$, and compute pairs $(h^t_i(x_{ij}),x_{ij})$, and if it is undefined or takes too many invocations, discard it.
+    \item Store a table $T_i$ of size $m$ with entries $(h^t_i(x_{ij}),x_{ij})$.
+    \item This constructs a set $\{h^p_i(x_{ij})| 1\leq p\leq t\}$, which is chain, and these chains for all $j$ form a cluster, which is a union of $m$ chains of length $t$.
+    \item To perform the online inversion, we are given $y=f(x)$, and we first search $A$ and return if found. Otherwise, we set $u_i = g_i^j(y)$, where $j$ is first value such that $f(g_i^j(y)) \notin A$. Now, for all $p \in t$, we search for $u_i=h_i^t(x_{ij})$, and if we find it, then we set $z = h_i^{t-p}(x_{ij})$, and check if $f(z) = y$. Otherwise, set $u_i = h_i(u_i)$, unless undefined.
+\end{enumerate}
+After analysis, Fiat and Naor determined that any function $f$ can be inverted at any point with high probability using either $TS^2 = N^3q(f)$, or $TS^3 = N^3$.
+
+\subsection*{3SUM-Indexing}
+Golovnev et al. describes a variant of the standard 3SUM problem, namely 3SUM-Indexing, which is what we will focus on. In 3SUM-Indexing, there is an offline preprocessing phase where a computationally unbounded algorithm receives a list of $N$ integers $A = \{a_1,a_2,...,a_N\}$ and produces a data structure $D$ of size at most $S$. Then, the online phase is given the target sum query $b \in \mathbb{Z}$, and must find $a_i,a_j$ such that $a_i + a_j = b$ in at most $T$ oracle queries to our data structure $D$
+
+There are two simple approaches for solving 3SUM-Indexing:
+\begin{enumerate}
+    \item Sort and store $A$, and we use a standard two-pointer algorithm for determining 3SUM. This gives us $S=N, T = O(N)$
+    \item Sort and store all pairwise sums of $A$ (the sumset), and then use the table to look up $b$. This gives us $S=O(N^2), T = \tilde{O}(1)$
+\end{enumerate}
+
+\subsection*{3SUM with Preprocessing}
+Golonev et al. apply Fiat-Naor's technique specifically to KSUM-Indexing, which generalizes the problem to an arbitrary group and $k$ value. For 3SUM-Indexing, $k=3$, and the group is $(\mathbb{Z}, +)$. They state the following theorem, coming from Fiat-Naor.
+\begin{theorem}{: Fiat-Naor}
+For any function $F : X \rightarrow X$ , and for any choice of values S and T such that $TS^3 \geq N^3$, there is a deterministic data structure with space $\tilde{O}(S)$ which allows inverting $F$ at every point making $\tilde{O}(T)$ queries to the memory cells and evaluations of $F$.
+\end{theorem}
+This data structure is used to determine the upper bound in the case for 3SUM. Suppose the input of size $N$ is $a_1,...a_n \in G$. Store all $a_i$ and the information needed to efficiently invert the function $f: [N]^{2} \rightarrow G$. Let $f(i_1,i_2) = a_{i_1} + a_{i_2} \mod p$. This $f$ is easy to compute, has domain of size $N^{2}$ and range $p = \tilde{O}(N^{k-1})$, and inverting $f$ at a point $b\in G$ gives us exactly the solution we want. We are also able to hash to a set of integers so that $p$ is bounded. Thus, the final theorem is as follows:
+\begin{theorem}{: Golonev et al.}
+For every real $0 \leq \delta \leq 1$, there is an adaptive data structure for 3SUM-Indexing with space $S = \tilde{O}(N^{2 - \delta})$ and query time $T = \tilde{O}(N^{3\delta})$.
+\end{theorem}
+TODO PROOF
+Our main question now is if we can do better. Remember that in the Fiat-Naor paper, if the probability of collision is $q(f)$, we have instead $TS^2 = N^3q(f)$. If the input is random (sampled uniformly random and with replacement) then $q(f) = 1/N$ is low and we have that $TS^2 = N^2$. Thus, our main question is whether or not we can improve this trade-off by exploiting the specific structure of the 3SUM-Indexing problem.
+
+There are a few possible paths we can take from here.
+\begin{itemize}
+    \item Explore structure of 3SUM-Indexing, such as determining if we can reduce $q(f)$ by studying the sumset, or understanding how values of the sumset are distributed. We can also explore if we can somehow separate high collision
+
+\end{itemize}
+
+\subsection*{Subquadratic 3SUM Decision Trees}
+Gronlund and Pettie
+
+\subsection*{Clustered Integer 3SUM}
+Chan 
+
+\subsection*{Fast Fourier Transform}
+We notice that this is a useful technique
+
+\subsection*{}
+
+\end{document}
