@@ -26,7 +26,17 @@ For any $0 < \delta < 1$, there exists an algorithm that solves the 3SUM-Indexin
 \end{lemma}
 
 \begin{proof}
-The algorithm consists of two parts - a carefully constructed function $f:[n]^2 \rightarrow [n]^2$ and a data structure for inverting $f$. This data structure is created via the Fiat-Naor inversion scheme. The Fiat-Naor inversion scheme gives us a tradeoff for inverting general functions using $O(S)$ space and $O(T)$ time. In our situation, $N=n^2$, so if we want our query time to be $T=O(n^\delta)$ for $0 < \delta < 1$, then we can choose to use space $S = O(n^{2-\delta/3})$.
+The algorithm consists of two parts - a carefully constructed function $f:[n]^2 \rightarrow [n]^2$ and a data structure for inverting $f$. Let $A+A$ be the sumset of a set of integers. The function $f$ is as follows:
+
+Let $g: [n]^2 \rightarrow U$ be defined as $g(i_1, i_2) = a_{1,i_j} + a_{2,i_2}$. Define a function $h: U \rightarrow [n]^2$ that maps elements from $U$ to $2$ indices. $f$ is thus defined as $f(i_1,i_2) = h(g(i_1,i_2))$.
+
+To invert $f$, we are given $c \in U$ during query time, and if there exists indices $i_1,i_2 \in A+A$ such that $a_{1,i_j} + a_{2,i_2} = c$, then
+
+$$f(i_1,i_2) = h(g(i_1,i_2)) = h(a_{1,i_j} + a_{2,i_2})= h(c)$$
+
+If an answer exists to a query $c$, then there exists $i_1,i_2 \in [n]$ such that $(i_1,i_2) \in f^{-1}(h(c))$
+
+The Fiat-Naor inversion scheme gives us a tradeoff for inverting general functions using $O(S)$ space and $O(T)$ time. In our situation, $N=n^2$, so if we want our query time to be $T=O(n^\delta)$ for $0 < \delta < 1$, then we can choose to use space $S = O(n^{2-\delta/3})$.
 \end{proof}
 
 \begin{theorem}
@@ -55,7 +65,7 @@ Consider 3SUM-Indexing and let $|A| = n$. The smallest $q(f)$ can take is $1/O(n
 \begin{proof} %Not necessarily correct, size of sumset is not directly q(f)
 The smallest $q(f)$ occurs when there are no collisions of sums, or when the function $f: A \rightarrow S$ has minimum in-degree (1). When all sums have a unique sumset, this is achieved, and there are a total of $O(n^2)$ possible sums. Thus, $q(f) = 1/O(n^2)$
 
-The largest $q(f)$ occurs when we have the greatest amount of collisions, or when the function $f$ has maximum in-degree. When our sumset is of minimum size, or an arithmetic progression, then this occurs. In this scenario, there are a total of $O(n)$ possible sums. Thus, to determine $q(f)$, we choose 2 sums and determine if they collide.
+The largest $q(f)$ occurs when we have the greatest amount of collisions, or when the function $f$ has maximum in-degree. When our sumset is of minimum size, or an arithmetic progression, then this occurs. In this scenario, there are a total of $O(n)$ possible sums. Thus, to determine $q(f)$, we choose 2 sums and determine if they collide. %Experimentally shown
 \end{proof}
 
 \section{Sumset Structure Proofs}
@@ -95,9 +105,13 @@ Consider the set $A = \{1,2,2^2,2^3,...,2^{n-1}\}$ such that $|A| = n$. If we co
 \label{sec:other}
 
 \begin{lemma}
-\label{Difficulty of Problem}
+\label{Difficulty of 3SUM-Indexing}
 3SUM-Indexing's most difficult instance is the arithmetic progression (or small sumset) instance.
 \end{lemma}
+
+\begin{proof}
+All instances of 3SUM-Indexing are lists of integers and their sumsets.
+\end{proof}
 
 
 \end{document}
