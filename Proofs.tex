@@ -7,6 +7,7 @@
 \newtheorem{definition}{Definition}
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
 \newtheorem{observation}{Observation}
 \newtheorem{question}{Problem}
 
@@ -28,7 +29,7 @@ For any $0 < \delta < 1$, there exists an algorithm that solves the 3SUM-Indexin
 \begin{proof}
 The algorithm consists of two parts - a carefully constructed function $f:[n]^2 \rightarrow [n]^2$ and a data structure for inverting $f$. Let $A+A$ be the sumset of a set of integers. The function $f$ is as follows:
 
-Let $g: [n]^2 \rightarrow U$ be defined as $g(i_1, i_2) = a_{1,i_j} + a_{2,i_2}$. Define a function $h: U \rightarrow [n]^2$ that maps elements from $U$ to $2$ indices. $f$ is thus defined as $f(i_1,i_2) = h(g(i_1,i_2))$.
+Let $g: [n]^2 \rightarrow U$ be defined as $g(i_1, i_2) = a_{1,i_1} + a_{2,i_2}$. Define a function $h: U \rightarrow [n]^2$ that maps elements from $U$ to $2$ indices, $i'_1,i'_2$. $f$ is thus defined as $f(i_1,i_2) = h(g(i_1,i_2))$.
 
 To invert $f$, we are given $c \in U$ during query time, and if there exists indices $i_1,i_2 \in A+A$ such that $a_{1,i_j} + a_{2,i_2} = c$, then
 
@@ -59,13 +60,19 @@ The Fiat-Naor inversion scheme gives us two tradeoffs: $TS^3 = N^3$ and $TS^2 = 
 
 \begin{lemma}
 \label{Min and Max q(f) values}
-Consider 3SUM-Indexing and let $|A| = n$. The smallest $q(f)$ can take is $1/O(n^2)$, and the largest $q(f)$ can take is $1/O(n)$
+Consider 3SUM-Indexing and let $|A| = n$. The smallest $q(f)$ can take is $O(1/n^2)$, and the largest $q(f)$ can take is $O(1/n)$
 \end{lemma}
 
-\begin{proof} %Not necessarily correct, size of sumset is not directly q(f)
-The smallest $q(f)$ occurs when there are no collisions of sums, or when the function $f: A \rightarrow S$ has minimum in-degree (1). When all sums have a unique sumset, this is achieved, and there are a total of $O(n^2)$ possible sums. Thus, $q(f) = 1/O(n^2)$
+\begin{proof}
+First, we define $q(f)$. Let $f:D \rightarrow D$ be the function that we are trying to invert, and let $I(y)$ be the number of preimages for $y$ under $f$, where $I(y) = |\{x \in D|f(x) = y\}|$. If we imagine the function as a bipartite graph mapping elements from $D$ to $D$, then $I(y)$ represents the indegree of $y$. $q(f)$ is then defined as the probability two randomly chosen elements from $D$ have the same image. More concretely, it is
 
-The largest $q(f)$ occurs when we have the greatest amount of collisions, or when the function $f$ has maximum in-degree. When our sumset is of minimum size, or an arithmetic progression, then this occurs. In this scenario, there are a total of $O(n)$ possible sums. Thus, to determine $q(f)$, we choose 2 sums and determine if they collide. %Experimentally shown
+$$q(f) = \frac{\sum_{i=0}^N I(i)^2}{N^2}$$
+
+Our function $f$ maps elements in the domain to their sums, or mapping the sumset to sums. $q(f)$ in our case represents that number of elements in the sumset that collide in their sums, or counting the indegree of the sums. 
+
+The smallest $q(f)$ occurs when there are no collisions of sums, or when the function $f: A \rightarrow S$ has minimum in-degree (1). When all sums have a unique sumset, this is achieved, and there are a total of $O(n^2)$ possible sums. Thus, $q(f) = O(n^2/n^4)= O(1/n^2)$
+
+The largest $q(f)$ occurs when we have the greatest amount of collisions, or when the function $f$ has maximum in-degree. When our sumset is of minimum size, or an arithmetic progression, then this occurs. In this scenario, there are a total of $O(n)$ possible sums. Thus, to determine $q(f)$, we count the number of sums that have a collision. This is exactly the partial sums of the sequence defined by $ceil(n^2/2)$, which is defined here: \url{https://oeis.org/A131941]}. There are many closed formula's of this sequence, but they are all $O(n^3)$. Thus, in the arithmetic sequence sumset case, $q(f) = O(n^3/n^4) = O(1/n)$.
 \end{proof}
 
 \section{Sumset Structure Proofs}
@@ -101,12 +108,22 @@ Consider the set $A = \{1,2,2^2,2^3,...,2^{n-1}\}$ such that $|A| = n$. If we co
 \section{BSG Proofs}
 \label{sec:bsg}
 
+\begin{corollary}
+\label{BSG Corollary}
+Let $A,B,S$ be finite sets, where $A,B$ are the sets in the 3SUM problem, and $S$ is a given set to determine the solution to 3SUM. Suppose that $|A||B| = O(N^2)$ and $|S| \leq tN$. For any $\alpha < 1$, there exists subsets $A_1,...,A_k \subseteq A$ and $B_1,...,B_k \subseteq B$ such that
+\begin{enumerate}
+    \item the remainder set $R = \{a,b \in A \times B : a+b \in S\} \setminus \bigcup^k_{i=1} (A_i \times B_i)$ has size at most $\alpha N^2$
+    \item $|A_i + B_i| \leq O((1/\alpha)^5t^3N)$ for each $i=1,...,k$
+    \item $k = O(1/\alpha)$
+\end{enumerate}
+\end{corollary}
+
 \section{Other Proofs}
 \label{sec:other}
 
 \begin{lemma}
 \label{Difficulty of 3SUM-Indexing}
-3SUM-Indexing's most difficult instance is the arithmetic progression (or small sumset) instance.
+If there exists a good algorithm for solving 3SUM-Indexing on a small sumset, then there is a good algorithm for all cases.
 \end{lemma}
 
 \begin{proof}
