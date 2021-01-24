@@ -11,15 +11,84 @@
 \newtheorem{observation}{Observation}
 \newtheorem{question}{Problem}
 
-\title{IIndexing Problems via Function Inversion}
+\title{Indexing Problems via Function Inversion}
 \author{Sam McCauley and Peter Zhao}
 \date{}
 
 \begin{document}
 \maketitle
 
-\section{Fiat-Naor Proofs}
-\label{sec:fiat-naor}
+\section{Indexing Problems}
+\label{sec:indexing}
+Indexing problems are online variants of certain problems that generally modify the problems so that we are given a set of data, and we must query certain results from the data. These problems are framed so that there are two phases: a preprocessing phase and an online phase. In the preprocessing phase, we are allowed to perform arbitrary computation on the given data and construct a data structure of space $S$. Then, in the online phase, we want to be able to answer a query in $T$ time by using this data structure.
 
+These problems are worth studying because often, we are faced with querying large sets of data for a specific result, as if they were stored in a database, and we would like to optimize on how much space the preprocessed data structure requires as well as how long a query takes in the online phase. This time space tradeoff becomes the cornerstone of these problems, and improvements include reducing both space and time further than what the current tradeoff curve allows.
+
+\section{Time Space Tradeoffs}
+\label{sec:tradeoffs}
+There are trivially two main ways to solve these problems, at either end of the tradeoff curve. We can either:
+\begin{enumerate}
+    \item Preprocess all the data and store into a table, so that query times are constant (but takes the maximum amount of space)
+    \item Perform no preprocessing and use no space, but require the maximum time required to check each element.
+\end{enumerate}
+There is some vagueness in the above descriptions, so we shall define some terms before we clarify. We have a set of data $D$ in which we want to check for membership for a specific query. For example, we might have a set of students, and we want to check if given a birthday query, whether or not anyone was born on that day. Assume that we have an oracle function \texttt{calculateBirthday()} that takes in a student, and returns a birthday. An easy way to solve this problem is to preprocess by taking all the students, and store all their birthdays in a dictionary, so that we can query birthdays in constant time. Another method is that we can iterate through all the students, and check if their birthday is equal to our query by continously applying \texttt{calculateBirthday()}. These correspond to methods 1 and 2 above at opposite sides of the tradeoff curve. Since we are not given the set necessary to answer queries, we must apply some function to transform it into the necessary query type. Often, the size of the set after naive preprocessing is larger than the given set \footnote{In our birthday example, this is not true, as there are a constant number of birthdays.}, and naive traversal requires linear time with respect to the input data, and so we seek some middle ground. 
+
+This gives us the notion of implicit and explicit forms. Again, assume we have an oracle function that converts our input set into the form we need for answering our query.
+\begin{enumerate}
+    \item Implicit form $D_i$ represents the original of data we are given, without applying the oracle function.
+    \item Explicit form $D_e$ represents the preprocessed form of the input data. This set may take much more space than the input data
+\end{enumerate}
+Thus, all indexing problem will have this form, where we look to preprocess our input data into a dictionary data structure via an oracle function. We will apply this concept to a few concrete indexing problems, making clear the necessary pieces that make it an indexing problem.
+
+\section{Examples}
+\label{sec:examples}
+% 3SUM Indexing
+\begin{definition}[3SUM Indexing]
+Given two lists of integers $A,B$ of length $n$, determine for a query $q$ if there exists $(a,b) \in A,B$ such that $a+b=q$.
+\end{definition}
+The indexing version of this classic problem has the following features:
+\begin{itemize}
+    \item Implicit form: two lists $A,B$
+    \item Explicit form: the sumset $A+B$ which contains all the sums of each pair of elements in $A,B$
+    \item Oracle function: the addition function $f(a,b) = a+b$
+\end{itemize}
+It can be solved in linear space and time by sorting and storing the lists, and using two pointers to answer the query. It can also be solved in quadratic space but constant time by storing the sumset.
+% OV Indexing
+\begin{definition}[Orthogonal Vectors Indexing]
+Given a set $S$ that contains $n$ $d$-length boolean vectors, determine if there exists a vector in $S$ which is orthogonal to a query that is a $d$-length boolean vector.
+\end{definition}
+Orthogonal vectors are vectors such that their dot product is 0, or that they differ in every location with a 1 (so that when u perform a dot product, the result is 0).
+\begin{itemize}
+    \item Implicit form: a list of $d$-length boolean vectors
+    \item Explicit form: the list of all vectors orthogonal to the input list. This can be as large as all possible boolean vectors of length $d$, which gives us $2^d$ possible vectors.
+    \item Oracle function: the function mapping vectors to their orthogonal vectors $f(v) = \{w | v \cdot w = 0\}$
+\end{itemize}
+OV-Indexing can be solved in linear time and space by storing the input vectors and performing the dot product between the query and input vectors. It can also be solved in $2^d$ space and constant time by storing all the orthogonal vectors.
+% Substring Indexing
+\begin{definition}[Substring Indexing]
+Given a bitstring of length $n$ which represents the text, determine for a pattern bitstring of length $p \ll n$, if the pattern appears at an index in the text.
+\end{definition}
+This problem is also the problem of pattern matching or substring searching, but an online variant.
+\begin{itemize}
+    \item Implicit form: the given text
+    \item Explicit form: the list of all indices for substrings of length $p$
+    \item Oracle function: the function converting a text to a substring index
+\end{itemize}
+Substring Indexing can be solved in linear time proportional to the size of the text and pattern. We can also solve it in linear space and time proportional to the size of the text by storing the suffix tree of the text, which is an efficient substring index method.
+% Jumbled Indexing
+\begin{definition}[Jumbled Indexing]
+Given a text $S$, determine if given a string $v$, whether or not there exists a substring in $S$ such that is jumble matches with $v$.
+\end{definition}
+Two strings jumble-match if one can permute the characters of one string so that it is equal to the other. For example $abc$ and $bca$ jumble match because we can rewrite $bca$ as $abc$. These vectors can also be called commutatively equivalent.
+\begin{itemize}
+    \item Implicit form: the text $S$
+    \item Explicit form: the list of substring indices that maintain frequency count of all characters, or a \textit{Parikh vector}
+    \item Oracle function: the function converting a text to a substring index of \textit{Parikh vectors}.
+\end{itemize}
+Jumbled Indexing can be solved in similar manners to Substring Indexing, except now we are not looking for string matches, but rather character frequency matches.
+
+\section{Function Inversion}
+\label{sec:solution}
+If a problem has the following structure above (and thus has "indexing" appended to its name), then we can potentially solve it with a better tradeoff by applying an algorithm developed by Fiat Naor for inverting functions. In order to do so, we attempt to reduce the problem to the problem of inverting functions, and when we have this format, we can immediately apply the Fiat Naor algorithm, and receive a tradeoff of $TS^3 = N^3$.
 
 \end{document}
