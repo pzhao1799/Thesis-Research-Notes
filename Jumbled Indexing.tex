@@ -1,0 +1,69 @@
+\documentclass{article}
+\usepackage{fullpage}
+\usepackage{amsthm, amsmath}
+\usepackage{url}
+
+\newtheorem{claim}{Claim}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{observation}{Observation}
+\newtheorem{question}{Problem}
+
+\title{Jumbled Indexing}
+\author{Sam McCauley and Peter Zhao}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Jumbled Indexing}
+\label{sec:jumbledindexing}
+Let $S$ be a string of length $n$ over an alphabet $\Sigma = \{\sigma_1, \sigma_2, ..., \sigma_{|\Sigma|}\}$. An integer $i$ represents a position in $S$ if $i \in \{1,...,|S|\}$. The substring $S[i..j]$ of $S$, for any two positions $i < j$, is the substring that begins at $i$ and ends at $j$, so the length of this substring is $j-i+1$. \cite{amir2014hardness}
+
+The Parikh vector of a string $S$ is $\psi(S) = (c_1(S), c_2(S),...,c_{|\Sigma|}(S))$, where $c_i(S)$ is the frequency of the $i-th$ character of $\Sigma$. Two strings jumble-match if they have the same Parikh vector. Given a text $T$ and a pattern $P$, $P$ jumble-matches at position $i$ if the substring $T[i..i+|P|-1]$ jumble-matches $P$. 
+
+Jumbled Pattern matching is the problem where one is given a pattern and text, and returns all positions in the text where the pattern jumble matches. Jumbled Indexing is an online variant defined as follows:
+\begin{itemize}
+    \item \textbf{Preprocess:} a text $S$ over alphabet $\Sigma$
+    \item \textbf{Query:} Given a pattern $Q$, decide if there is a substring $S'$ such that $\psi(S') = \psi(Q)$. We can assume $Q$ is already a Parikh vector.
+\end{itemize}
+
+
+\section{Solving}
+\label{sec:solving}
+First, suppose that we have a binary alphabet $\Sigma = \{0,1\}$. Then, we can solve the problem quite easily for any query length. Suppose we are given a text $T$:
+\begin{itemize}
+    \item Preprocess $T$ by constructing a table such that for each sliding window size, we store the maximum and minimum counts of $1$ for that window size. For example, suppose we have the binary string $1011001$. Then, such a table would look like (for window size of size $w$:
+    \begin{center}
+        \begin{tabular}{l|lllllll}
+        w   & 1 & 2 & 3 & 4 & 5 & 6 & 7 \\ \hline
+        min & 0 & 0 & 1 & 2 & 2 & 3 & 4 \\ \hline
+        max & 1 & 2 & 2 & 3 & 3 & 3 & 4
+        \end{tabular}
+    \end{center}
+    We see that for a window size of 3, we have the minimum number of 1's is one (at position 4), and the maximum number of 1's is 2 (at position 0).
+    
+    \item To query for any length vector, given a $\psi(Q) = (a,b)$, where $a$ represents number of ones and $b$ the number of zeros, simply query the table for $w = x+y$, and see if $x \in [min..max]$.
+\end{itemize}
+This gives us a data structure of size $O(n)$ and query time $O(1)$. \cite{burcsi2012algorithms}
+
+This technique does not work with alphabets of larger size, because currently we are able to determine a unique Parikh vector via its sum due to the binary property. For example, if we have a ternary alphabet $\Sigma = \{0,1,2\}$, then for a window of size $3$ it is unclear whether or not the word contains $0,1,2$ or $1,1,1$. Thus, lets look at how we can apply Fiat-Naor to solve this problem.
+
+\section{Function Inversion}
+\label{sec:function}
+Suppose we are given a text of length $n$ from a constant alphabet $\Sigma$ which is of size $s$. We seek to define a function that maps indices to Parikh vectors $f:[n]^2 \rightarrow U$, where $U$ is the universe of all possible Parikh vectors given an alphabet $\Sigma$. We know that $U$ is a set of vectors of size $[n]^{|\Sigma|}$, as each entry in the vector represents a letter in the alphabet, and the vector can contain elements from $0,...,n$. Note the following key features:
+\begin{itemize}
+    \item $f$ is not necessarily easy to compute; namely given two indices, we must examine up to $n$ elements to count the frequency.
+    \item The domain of $f$ is $n^2$, as we are dealing with pairs of indices, and the range is $n^{|\Sigma|}$
+    \item Inverting $f$ for a given Parikh vector $p$ returns indices $(i,j) \in [n]^2$ such that its Parikh vector is equal to $p$
+\end{itemize}
+
+
+
+
+\newpage
+\bibliographystyle{plain}
+\bibliography{jumble.bib}
+\end{document}

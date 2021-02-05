@@ -31,15 +31,24 @@ There are trivially two main ways to solve these problems, at either end of the 
     \item Preprocess all the data and store into a table, so that query times are constant (but takes the maximum amount of space)
     \item Perform no preprocessing and use no space, but require the maximum time required to check each element.
 \end{enumerate}
-There is some vagueness in the above descriptions, so we shall define some terms before we clarify. We have a set of data $D$ in which we want to check for membership for a specific query. For example, we might have a set of students, and we want to check if given a birthday query, whether or not anyone was born on that day. Assume that we have an oracle function \texttt{calculateBirthday()} that takes in a student, and returns a birthday. An easy way to solve this problem is to preprocess by taking all the students, and store all their birthdays in a dictionary, so that we can query birthdays in constant time. Another method is that we can iterate through all the students, and check if their birthday is equal to our query by continously applying \texttt{calculateBirthday()}. These correspond to methods 1 and 2 above at opposite sides of the tradeoff curve. Since we are not given the set necessary to answer queries, we must apply some function to transform it into the necessary query type. Often, the size of the set after naive preprocessing is larger than the given set \footnote{In our birthday example, this is not true, as there are a constant number of birthdays.}, and naive traversal requires linear time with respect to the input data, and so we seek some middle ground. 
+There is some vagueness in the above descriptions, so we shall define some terms before we clarify. We have a set of data $D$ in which we want to check for membership for a specific query. 
 
-This gives us the notion of implicit and explicit forms. Again, assume we have an oracle function that converts our input set into the form we need for answering our query.
+For example, we might have a set of students, and we want to check if given a birthday query, whether or not anyone was born on that day. Assume that we have an oracle function \texttt{calculateBirthday()} that takes in a student, and returns a birthday. An easy way to solve this problem is to preprocess by taking all the students, and store all their birthdays in a dictionary, so that we can query birthdays in constant time. Another method is that we can iterate through all the students, and check if their birthday is equal to our query by continuously applying \texttt{calculateBirthday()}. These correspond to methods 1 and 2 above at opposite sides of the tradeoff curve. Since we are not given the set necessary to answer queries, we must apply some function to transform it into the necessary query type. Often, the size of the set after naive preprocessing into our query type is larger than the input, as the image of the problem is larger than the original input data. Thus, we likely need to apply a procedure to the original data so that it can be appropriately converted to our query type via an oracle function. \footnote{In our birthday example, this is not true, as there are a constant number of birthdays, hence why we do not need a procedure}
+
+This gives us the notion of original, implicit, and explicit forms. Again, assume we have an oracle function that converts our into the form we need for answering our query. We also presume the potential need for a procedure, which we will heavily depend on the problem data, as well as the type of query required. It may be the case that for the same problem data, we seek a different query, and so the procedure might be different. 
 \begin{enumerate}
-    \item Implicit form $D_i$ represents the original of data we are given, without applying the oracle function.
-    \item Explicit form $D_e$ represents the preprocessed form of the input data. This set may take much more space than the input data
+    \item Original form $D_o$ represent the raw input data.
+    \item Implicit form $D_i$ represents the given preimage of the problem, where we convert from the original form via some procedure. We can map this preimage to the image (the explicit form) via an oracle function.
+    \item Explicit form $D_e$ represents the form of the queries that we expect to receive, and the size of its domain is equivalent to the size needed in a lookup table.
 \end{enumerate}
-Thus, all indexing problem will have this form, where we look to preprocess our input data into a dictionary data structure via an oracle function. We will apply this concept to a few concrete indexing problems, making clear the necessary pieces that make it an indexing problem.
+Diagrammatically:
+$$\text{Original data} \rightarrow_{procedure} \text{Implicit Form} \rightarrow_{oracle} \text{Explicit Form}$$
 
+All the procedure does is convert the input data into the necessary implicit form so that once we apply the oracle function to the implicit form, we immediately receive the explicit form that matches our query type so that if we store the explicit form into a table, we achieve constant query time and space usage proportional to the size of the explicit form's domain. We look to achieve less space than the oracle function's domain and range (the explicit and implicit forms respectively), and/or less time linear to the size of the original input data.
+
+Thus, all indexing problem will have this structure, where we look to preprocess our input data into a dictionary data structure via an oracle function and a procedure. We will apply this concept to a few concrete indexing problems, making clear the necessary pieces that make it an indexing problem.
+
+%%%%%%%%%%%%%TODO%%%%%%%%%%%%%%%%%%
 \section{Examples}
 \label{sec:examples}
 % 3SUM Indexing
@@ -48,8 +57,10 @@ Given two lists of integers $A,B$ of length $n$, determine for a query $q$ if th
 \end{definition}
 The indexing version of this classic problem has the following features:
 \begin{itemize}
-    \item Implicit form: two lists $A,B$
+    \item Original data: two lists $A,B$
+    \item Implicit form: A list of pairs of elements from $A,B$
     \item Explicit form: the sumset $A+B$ which contains all the sums of each pair of elements in $A,B$
+    \item Procedure: Construct a list of all pairs of elements from $A,B$
     \item Oracle function: the addition function $f(a,b) = a+b$
 \end{itemize}
 It can be solved in linear space and time by sorting and storing the lists, and using two pointers to answer the query. It can also be solved in quadratic space but constant time by storing the sumset.
@@ -59,9 +70,11 @@ Given a set $S$ that contains $n$ $d$-length boolean vectors, determine if there
 \end{definition}
 Orthogonal vectors are vectors such that their dot product is 0, or that they differ in every location with a 1 (so that when u perform a dot product, the result is 0).
 \begin{itemize}
-    \item Implicit form: a list of $d$-length boolean vectors
+    \item Original data: a list of $d$-length boolean vectors
+    \item Implicit form: The list of $d$-length boolean vectors with each element repeated $2^k$ times, where $k \leq d$ is the number of zeros in the specified vector
     \item Explicit form: the list of all vectors orthogonal to the input list. This can be as large as all possible boolean vectors of length $d$, which gives us $2^d$ possible vectors.
-    \item Oracle function: the function mapping vectors to their orthogonal vectors $f(v) = \{w | v \cdot w = 0\}$
+    \item Procedure: For each vector, repeat the vector $2^k$ times where $k \leq d$ is the number of zeros in the vector. Label each of these vectors so that they are indexed, and the index specifies the vector it is orthogonal to in lexicographic order.
+    \item Oracle function: the function mapping vectors to their orthogonal vectors $f(v_i) = w_i$ such that $w \cdot v_i = 0$, where $i$ is the index of the vector in lexicographic order.
 \end{itemize}
 OV-Indexing can be solved in linear time and space by storing the input vectors and performing the dot product between the query and input vectors. It can also be solved in $2^d$ space and constant time by storing all the orthogonal vectors.
 % Substring Indexing
@@ -70,25 +83,36 @@ Given a bitstring of length $n$ which represents the text, determine for a patte
 \end{definition}
 This problem is also the problem of pattern matching or substring searching, but an online variant.
 \begin{itemize}
-    \item Implicit form: the given text
-    \item Explicit form: the list of all indices for substrings of length $p$
-    \item Oracle function: the function converting a text to a substring index
+    \item Original data: the given text
+    \item Implicit form: a set of pairs of indicies $(i,j)$ representing the beginning and end of a substring
+    \item Explicit form: the list of all substrings
+    \item Procedure: For each $i,j \in n$ such that $i<j$, store $(i,j)$ in a list. This list of indices corresponds to a substring.
+    \item Oracle function: the function converting a substring index to a substring of length $p$
 \end{itemize}
-Substring Indexing can be solved in linear time proportional to the size of the text and pattern. We can also solve it in linear space and time proportional to the size of the text by storing the suffix tree of the text, which is an efficient substring index method.
+Substring Indexing can be solved in linear time proportional to the size of the text and pattern. We can also solve it in linear extra space and time proportional to the size of the text by storing the suffix tree of the text, which is an efficient substring index method.
 % Jumbled Indexing
 \begin{definition}[Jumbled Indexing]
 Given a text $S$, determine if given a string $v$, whether or not there exists a substring in $S$ such that is jumble matches with $v$.
 \end{definition}
 Two strings jumble-match if one can permute the characters of one string so that it is equal to the other. For example $abc$ and $bca$ jumble match because we can rewrite $bca$ as $abc$. These vectors can also be called commutatively equivalent.
 \begin{itemize}
-    \item Implicit form: the text $S$
-    \item Explicit form: the list of substring indices that maintain frequency count of all characters, or a \textit{Parikh vector}
-    \item Oracle function: the function converting a text to a substring index of \textit{Parikh vectors}.
+    \item Original data: the text $S$
+    \item Implicit form: a set of pairs of indicies $(i,j)$ representing the beginning and end of a substring
+    \item Explicit form: the list of \textit{Parikh vectors}, or vectors that maintain frequency count of all characters
+    \item Procedure: For each $i,j \in n$ such that $i<j$, store $(i,j)$ in a list. This list of indices corresponds to a substring.
+    \item Oracle function: the function converting two indices to a \textit{Parikh vector}.
 \end{itemize}
 Jumbled Indexing can be solved in similar manners to Substring Indexing, except now we are not looking for string matches, but rather character frequency matches.
 
 \section{Function Inversion}
 \label{sec:solution}
 If a problem has the following structure above (and thus has "indexing" appended to its name), then we can potentially solve it with a better tradeoff by applying an algorithm developed by Fiat Naor for inverting functions. In order to do so, we attempt to reduce the problem to the problem of inverting functions, and when we have this format, we can immediately apply the Fiat Naor algorithm, and receive a tradeoff of $TS^3 = N^3$.
+
+We state Fiat-Naor's theorem again here for clarity.
+\begin{theorem}
+For any function $F:X \rightarrow X$, and for any choice of values $S,T$ usch that $S^3T \geq |X|^3$, there is a deterministic data structure with space $O(S)$ which allows inverting $F$ at every point making $O(T)$ queries to the memory cells and evaluations of $F$.
+\end{theorem}
+
+Want to be able to immediately plug in sizes of input and oracle functions to get tradeoff.
 
 \end{document}

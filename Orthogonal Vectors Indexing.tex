@@ -1,0 +1,61 @@
+\documentclass{article}
+\usepackage{fullpage}
+\usepackage{amsthm, amsmath}
+\usepackage{url}
+
+\newtheorem{claim}{Claim}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{observation}{Observation}
+\newtheorem{question}{Problem}
+
+\title{Orthogonal Vectors Indexing}
+\author{Sam McCauley and Peter Zhao}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Orthogonal Vectors Indexing}
+\label{sec:ovindexing}
+OV-Indexing is the problem where given a set $S$ that contains $n$ $d$-length boolean vectors, determine if there exists a vector in $S$ which is orthogonal to a query that is a $d$-length boolean vector. Orthogonal vectors are vectors such that their dot product is 0, or that they differ in every location with a 1 (so that when u perform a dot product, the result is 0). Thus, we have
+\begin{itemize}
+    \item \textbf{Preprocess:} a set $S$ of $n$ $d$-length boolean vectors
+    \item \textbf{Query:} Given a query vector $w$ of length $n$, decide if there is a vector $v \in S$ such that $v \cdot w = 0$.
+\end{itemize}
+
+
+\section{Solving}
+\label{sec:solving}
+In order to construct a data structure to solve this problem in the preprocessing phase, we will first reduce our boolean vectors into their numerical representation. Thus, we can imagine that we are given as input a set $S$ of numbers between $0,...,2^d-1$, where $d$ is the length of the boolean vector. Now, suppose we wanted to tabulate all vectors that were orthogonal to vectors in $S$, so that given any query vector, we could immediately look up the solution. To do this, we first determine for each vector in our set, what are all the vectors orthogonal to it. We know that there are a total of $2^m$ many of these orthogonal vectors for each vector in our set, where $m$ is the number of $0$'s. Thus, our table will contain tuples of the following form:
+$$(v,i,w)$$
+where $v$ is the vector in our input set, $i$ is the index into $v$'s orthogonal vector list (ordered by size) and $w$ is the orthogonal vector itself. We will now demonstrate with a quick example.
+
+\subsection{Example}
+Suppose we are given the set $S = \{8,10,14\}$, with $d = 4$. Then, we want to first sort $S$ be the number of $1$'s there are (or reverse sort by the number of $0$'s), and then by increasing numerical value. This gives us $[8,10,14]$. Then, we list out, for each vector, a vector orthogonal to it, and an index counter. Storing these values in a tuple, we have the following:
+\begin{enumerate}
+    \item (8,0,0), (8,1,1),...,(8,7,7)
+    \item (10,0,0), (10,1,1), (10,2,4), (10,3,5)
+    \item (14,0,0), (14,0,1)
+\end{enumerate}
+The enumeration is simply for clarity of items - they would be actually stored in a table. To solve OV-Indexing using such a table, we simply check if the query vector is in any of the tuples' third position. The main problem is that the space required for storing our explicit form is enormous. We seek to utilize the implicit form and a lookup function to reduce our space complexity. Thus, we propose the following method to access immediately in constant space the associated element. Suppose we want to query element $i$ in our table. We define the explicit form to be this table, and we define the implicit form as the sorted list $S$ by number of 1's, keeping track of the count of the 1's for each vector.
+
+TODO EXPLANATION NOT CLEAN
+\begin{enumerate}
+    \item Since our input vectors are sorted by number of 1's, we can determine which element in $S$ we in particular care about by performing a quick binary search into the sorted list - we know that each vector contains $k$ 1's, or $2^{d-k}$ many orthogonal vectors. This gives us $k$, or the number of $1's$ our target vector has.
+    \item Once we have the appropriate element of $S$, calculate $i' = i - l$, where $l$ is the number of elements in $S$ with less than $k$ 1's. This indexes directly into all the elements in $S$ with $k$ 1's.
+    \item To get the specific element in $S$ within the elements in $k$ 1's, we divide $i'/2^{d-k}$, which indexes into the specific element with $k$ 1's we want.
+    \item Then, to get its orthogonal vector, we perform $i' \mod 2^{d-k}$, which will select the vector orthogonal at that index in our table
+\end{enumerate}
+Now, we can quickly access elements in our explicit form without storing the explicit form, and instead storing the implicit form and using this lookup method. Now, we explain why we need this.
+
+\section{Function Inversion}
+\label{sec:funcinversion}
+To perform function inversion, we need an oracle function such that if we invert this function, we immediately solve OV-indexing. Our function will take in a vector in $S$ and an index $j = 1,...,2^m$ where $m$ is the number of 0's, and return the $j$th orthogonal vector. To invert this function, we want to be able to apply the Fiat-Naor inversion scheme, which requires a data structure. We will construct the data structure in the following manner.
+
+Suppose we have $n$ input elements. Our data structure will store all of these elements along with all information needed to invert the function $f: [n]^2 \rightarrow [n]^2$. We define $g: [n]^2 \rightarrow U$ as $g(v,i) = w$. Let $h: U \rightarrow [n]^2$ be the function mapping an element in $U$ to $(v,i)$ - another vector in our set and an index. Thus, $f(v,i) = h(g(v,i)) = h(w)$. Given a query $w \in U$, if there exists a vector and index in our implicit form pointing to an orthogonal vector, then there 
+
+
+\end{document}
